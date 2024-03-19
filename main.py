@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox, simpledialog
 import csv
 import matplotlib.pyplot as plt
-from functions import add_expense, edit_expense, delete_expense, save_expenses
+import streamlit as st
 
 
 class ExpenseTrackerApp(tk.Tk):
@@ -65,7 +65,7 @@ class ExpenseTrackerApp(tk.Tk):
         self.date_label.grid(row=0, column=6, padx=5)
         self.date_entry = tk.Entry(self.frame_input, font=("Helvetica", 12), width=15)
         self.date_entry.grid(row=0, column=7, padx=5)
-        self.add_button = tk.Button(self, text="Add Expense", command=add_expense)
+        self.add_button = tk.Button(self, text="Add Expense", command=self.add_expense)
         self.add_button.pack(pady=5)
         self.frame_list = tk.Frame(self)
         self.frame_list.pack(pady=10)
@@ -80,15 +80,15 @@ class ExpenseTrackerApp(tk.Tk):
         self.expense_listbox.pack(pady=5)
         self.scrollbar.config(command=self.expense_listbox.yview)
         self.edit_button = tk.Button(
-            self, text="Edit Expense", command=edit_expense
+            self, text="Edit Expense", command=self.edit_expense
         )
         self.edit_button.pack(pady=5)
         self.delete_button = tk.Button(
-            self, text="Delete Expense", command=delete_expense
+            self, text="Delete Expense", command=self.delete_expense
         )
         self.delete_button.pack(pady=5)
         self.save_button = tk.Button(
-            self, text="Save Expenses", command=save_expenses
+            self, text="Save Expenses", command=self.save_expenses
         )
         self.save_button.pack(pady=5)
         self.total_label = tk.Label(
@@ -101,6 +101,59 @@ class ExpenseTrackerApp(tk.Tk):
         self.show_chart_button.pack(pady=5)
         self.update_total_label()
 
+    def add_expense(self):
+        expense = self.expense_entry.get()
+        item = self.item_entry.get()
+        category = self.category_var.get()
+        date = self.date_entry.get()
+        if expense and date:
+            self.expenses.append((expense, item, category, date))
+            self.expense_listbox.insert(
+                tk.END, f"{expense} - {item} - {category} ({date})"
+            )
+            self.expense_entry.delete(0, tk.END)
+            self.item_entry.delete(0, tk.END)
+            self.date_entry.delete(0, tk.END)
+        else:
+            messagebox.showwarning("Warning", "Expense and Date cannot be empty.")
+        self.update_total_label()
+
+    def edit_expense(self):
+        selected_index = self.expense_listbox.curselection()
+        if selected_index:
+            selected_index = selected_index[0]
+            selected_expense = self.expenses[selected_index]
+            new_expense = simpledialog.askstring(
+                "Edit Expense", "Enter new expense:", initialvalue=selected_expense[0]
+            )
+            if new_expense:
+                self.expenses[selected_index] = (
+                    new_expense,
+                    selected_expense[1],
+                    selected_expense[2],
+                    selected_expense[3],
+                )
+                self.refresh_list()
+                self.update_total_label()
+
+    def delete_expense(self):
+        selected_index = self.expense_listbox.curselection()
+        if selected_index:
+            selected_index = selected_index[0]
+            streamlit.popover
+
+            del self.expenses[selected_index]
+            self.expense_listbox.delete( selected_index )
+            self.update_total_label()
+
+    def save_expenses(self):
+        with open( "expenses.csv", "w", newline="" ) as csvfile:
+            writer = csv.writer( csvfile )
+            column_headers = ["Expense Amount", "Item Description", "Category", "Date"]
+            writer.writerow( column_headers )
+            for expense in self.expenses:
+                writer.writerow(expense)
+
     def refresh_list(self):
         self.expense_listbox.delete( 0, tk.END )
         for expense, item, category, date in self.expenses:
@@ -109,7 +162,7 @@ class ExpenseTrackerApp(tk.Tk):
             )
 
     def update_total_label(self):
-        total_expenses = sum( float( expense[0] ) for expense in self.expenses )
+        total_expenses = sum(float(expense[0]) for expense in self.expenses)
         self.total_label.config(text=f"Total Expenses: INR {total_expenses:.2f}")
 
     def show_expenses_chart(self):
