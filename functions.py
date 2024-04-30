@@ -21,23 +21,7 @@ def add_expense(self):
     self.update_total_label()
 
 
-def edit_expense(self):
-    selected_index = self.expense_listbox.curselection()
-    if selected_index:
-        selected_index = selected_index[0]
-        selected_expense = self.expenses[selected_index]
-        new_expense = simpledialog.askstring(
-            "Edit Expense", "Enter new expense:", initialvalue=selected_expense[0]
-        )
-        if new_expense:
-            self.expenses[selected_index] = (
-                new_expense,
-                selected_expense[1],
-                selected_expense[2],
-                selected_expense[3],
-            )
-            self.refresh_list()
-            self.update_total_label()
+
 
 
 def delete_expense(self):
@@ -45,14 +29,7 @@ def delete_expense(self):
     if selected_index:
         selected_index = selected_index[0]
         del self.expenses[selected_index]
-        self.expense_listbox.delete( selected_index )
+        self.expense_listbox.delete(selected_index)
         self.update_total_label()
 
 
-def save_expenses(self):
-    with open("expenses.csv", "w", newline="") as csvfile:
-        writer = csv.writer(csvfile)
-        column_headers = ["Expense Amount", "Item Description", "Category", "Date"]
-        writer.writerow(column_headers)
-        for expense in self.expenses:
-            writer.writerow(expense)
